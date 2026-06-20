@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fbfaf7;
+  --foreground: #00232b;
+  --card: #ffffff;
+  --card-foreground: #00232b;
+  --border: #e6dcc5;
+  --primary: #004554;
+  --primary-hover: #003642;
+  --secondary: #c9973a;
+  --secondary-hover: #b3842c;
+  --accent: #c9973a;
+  --muted: #6b7280;
+  --muted-background: #f4f1eb;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border-brand: var(--border);
+  
+  /* Brand colors */
+  --color-brand-primary: var(--primary);
+  --color-brand-primary-hover: var(--primary-hover);
+  --color-brand-secondary: var(--secondary);
+  --color-brand-secondary-hover: var(--secondary-hover);
+  --color-brand-accent: var(--accent);
+  
+  /* Additional UI colors */
+  --color-brand-cream: #fbfaf7;
+  --color-brand-cream-dark: #f4f1eb;
+  --color-brand-teal-dark: #001c22;
+  
+  /* Arabic Typography Override */
+  --font-sans: var(--font-cairo), system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* Disable tracking for Arabic headings/text since it breaks ligatures */
+*, h1, h2, h3, h4, h5, h6 {
+  letter-spacing: normal !important;
+}
+
+/* Custom scrollbars for Kanban and Modals */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e6dcc5;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c9973a;
+}
