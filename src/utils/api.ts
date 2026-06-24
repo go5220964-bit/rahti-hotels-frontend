@@ -515,15 +515,36 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000/ap
 if (typeof window !== 'undefined') {
   const originalFetch = window.fetch;
   window.fetch = async (input, init) => {
-    const urlStr = typeof input === 'string' ? input : (input as any).url || input.toString();
+    let urlStr = '';
+    let isRequestObject = false;
+    
+    if (typeof input === 'string') {
+      urlStr = input;
+    } else if (input && typeof input === 'object') {
+      urlStr = (input as any).url || '';
+      isRequestObject = true;
+    }
+
     if (urlStr.includes(BACKEND_URL) && !urlStr.includes('/auth/login')) {
       const token = localStorage.getItem('rahti_token');
       if (token) {
-        init = init || {};
-        init.headers = {
-          ...(init.headers || {}),
-          'Authorization': `Bearer ${token}`
-        };
+        if (isRequestObject) {
+          const req = input as Request;
+          const newHeaders = new Headers(req.headers);
+          newHeaders.set('Authorization', `Bearer ${token}`);
+          
+          let newInit: RequestInit = init ? { ...init } : {};
+          newInit.headers = newHeaders;
+          
+          const newRequest = new Request(req, newInit);
+          return originalFetch(newRequest);
+        } else {
+          let newInit: RequestInit = init ? { ...init } : {};
+          const newHeaders = newInit.headers ? new Headers(newInit.headers) : new Headers();
+          newHeaders.set('Authorization', `Bearer ${token}`);
+          newInit.headers = newHeaders;
+          return originalFetch(input, newInit);
+        }
       }
     }
     return originalFetch(input, init);
@@ -5129,7 +5150,10 @@ export const api = {
       } else {
         try {
           const base64Url = token.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          while (base64.length % 4) {
+            base64 += '=';
+          }
           const jsonPayload = decodeURIComponent(
             window.atob(base64)
               .split('')
@@ -5311,7 +5335,7 @@ export const api = {
     return { success: true, message: 'تم حذف الوثيقة بنجاح' };
   },
 
-  getSystemSettings: async (): Promise<any[]> => {
+  getSystemSettings: async (): Promise<any> => {
     try {
       const res = await fetch(`${BACKEND_URL}/system/settings`, { signal: AbortSignal.timeout(2000) });
       if (res.ok) {
@@ -5321,12 +5345,20 @@ export const api = {
     } catch (e) {
       console.warn('API getSystemSettings error:', e);
     }
-    return [
-      { id: '1', key: 'attendance_buffer_minutes', value: '30' },
-      { id: '2', key: 'whatsapp_token', value: 'mock-token' },
-      { id: '3', key: 'webhook_url', value: 'http://localhost:3000/webhook' },
-      { id: '4', key: 'gemini_api_key', value: 'AIzaSyMockKey' }
-    ];
+    return {
+      attendance_buffer_minutes: '30',
+      procurementApprovalThreshold: '5000',
+      bot_menu_maintenance: 'true',
+      bot_menu_cleaning: 'true',
+      bot_menu_warehouse: 'true',
+      bot_menu_procurement: 'true',
+      bot_menu_techsupport: 'true',
+      bot_menu_lostfound: 'true',
+      bot_menu_damage: 'true',
+      bot_menu_loan: 'true',
+      bot_menu_leave: 'true',
+      bot_menu_other: 'true'
+    };
   },
 
   updateSystemSettings: async (settings: any): Promise<any> => {

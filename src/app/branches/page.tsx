@@ -15,6 +15,9 @@ export default function BranchesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [branchName, setBranchName] = useState('');
   const [branchLocation, setBranchLocation] = useState('');
+  const [branchLat, setBranchLat] = useState('');
+  const [branchLng, setBranchLng] = useState('');
+  const [branchRadius, setBranchRadius] = useState('200');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalError, setModalError] = useState('');
 
@@ -22,6 +25,9 @@ export default function BranchesPage() {
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [editBranchName, setEditBranchName] = useState('');
   const [editBranchLocation, setEditBranchLocation] = useState('');
+  const [editBranchLat, setEditBranchLat] = useState('');
+  const [editBranchLng, setEditBranchLng] = useState('');
+  const [editBranchRadius, setEditBranchRadius] = useState('200');
 
   // Toast State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -59,13 +65,33 @@ export default function BranchesPage() {
       return;
     }
 
+    const latVal = branchLat.trim() === '' ? null : parseFloat(branchLat);
+    const lngVal = branchLng.trim() === '' ? null : parseFloat(branchLng);
+    const radiusVal = parseInt(branchRadius, 10);
+
+    if (latVal !== null && isNaN(latVal)) {
+      setModalError('الرجاء إدخال خط عرض صحيح (أو اتركه فارغاً)');
+      return;
+    }
+    if (lngVal !== null && isNaN(lngVal)) {
+      setModalError('الرجاء إدخال خط طول صحيح (أو اتركه فارغاً)');
+      return;
+    }
+    if (isNaN(radiusVal) || radiusVal <= 0) {
+      setModalError('الرجاء تحديد نصف قطر نطاق جغرافي صحيح بالبريد');
+      return;
+    }
+
     setIsSubmitting(true);
     setModalError('');
 
     try {
       const newBranch = await api.createBranch({
         name: branchName.trim(),
-        location: branchLocation.trim()
+        location: branchLocation.trim(),
+        lat: latVal,
+        lng: lngVal,
+        radiusMeters: radiusVal
       });
 
       setBranches([newBranch, ...branches]);
@@ -75,6 +101,9 @@ export default function BranchesPage() {
       // Reset form
       setBranchName('');
       setBranchLocation('');
+      setBranchLat('');
+      setBranchLng('');
+      setBranchRadius('200');
     } catch (error: any) {
       console.error('Failed to create branch:', error);
       setModalError('حدث خطأ أثناء الاتصال بالخادم لحفظ الفرع الجديد.');
@@ -87,6 +116,9 @@ export default function BranchesPage() {
     setEditingBranch(branch);
     setEditBranchName(branch.name);
     setEditBranchLocation(branch.location || '');
+    setEditBranchLat(branch.lat !== null && branch.lat !== undefined ? branch.lat.toString() : '');
+    setEditBranchLng(branch.lng !== null && branch.lng !== undefined ? branch.lng.toString() : '');
+    setEditBranchRadius(branch.radiusMeters ? branch.radiusMeters.toString() : '200');
     setModalError('');
   };
 
@@ -99,13 +131,33 @@ export default function BranchesPage() {
       return;
     }
 
+    const latVal = editBranchLat.trim() === '' ? null : parseFloat(editBranchLat);
+    const lngVal = editBranchLng.trim() === '' ? null : parseFloat(editBranchLng);
+    const radiusVal = parseInt(editBranchRadius, 10);
+
+    if (latVal !== null && isNaN(latVal)) {
+      setModalError('الرجاء إدخال خط عرض صحيح (أو اتركه فارغاً)');
+      return;
+    }
+    if (lngVal !== null && isNaN(lngVal)) {
+      setModalError('الرجاء إدخال خط طول صحيح (أو اتركه فارغاً)');
+      return;
+    }
+    if (isNaN(radiusVal) || radiusVal <= 0) {
+      setModalError('الرجاء تحديد نصف قطر نطاق جغرافي صحيح بالبريد');
+      return;
+    }
+
     setIsSubmitting(true);
     setModalError('');
 
     try {
       const updatedBranch = await api.updateBranch(editingBranch.id, {
         name: editBranchName.trim(),
-        location: editBranchLocation.trim()
+        location: editBranchLocation.trim(),
+        lat: latVal,
+        lng: lngVal,
+        radiusMeters: radiusVal
       });
 
       setBranches(branches.map(b => b.id === editingBranch.id ? updatedBranch : b));
@@ -212,9 +264,18 @@ export default function BranchesPage() {
                       </span>
                     </td>
                     
-                    {/* Location */}
-                    <td className="px-6 py-4 font-semibold text-muted">
-                      {branch.location || 'غير محدد'}
+                    {/* Location & Coordinates */}
+                    <td className="px-6 py-4 font-semibold text-muted space-y-1">
+                      <div>{branch.location || 'غير محدد'}</div>
+                      {branch.lat !== null && branch.lng !== null && branch.lat !== undefined && branch.lng !== undefined ? (
+                        <div className="text-[10px] text-slate-400 font-mono">
+                          📍 {branch.lat.toFixed(5)}, {branch.lng.toFixed(5)} ({branch.radiusMeters}م)
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-rose-500 font-bold">
+                          ⚠️ الموقع الجغرافي غير محدد
+                        </div>
+                      )}
                     </td>
 
                     {/* WhatsApp sync status */}
@@ -315,6 +376,53 @@ export default function BranchesPage() {
                 />
               </div>
 
+              {/* Coordinates Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-teal-dark block">خط العرض (Latitude):</label>
+                  <input
+                    type="text"
+                    placeholder="مثال: 21.4858"
+                    value={branchLat}
+                    onChange={(e) => setBranchLat(e.target.value)}
+                    className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-mono"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-teal-dark block">خط الطول (Longitude):</label>
+                  <input
+                    type="text"
+                    placeholder="مثال: 39.1925"
+                    value={branchLng}
+                    onChange={(e) => setBranchLng(e.target.value)}
+                    className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-teal-dark block">نصف قطر النطاق (بالمتر):</label>
+                  <input
+                    type="number"
+                    value={branchRadius}
+                    onChange={(e) => setBranchRadius(e.target.value)}
+                    className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-mono"
+                    required
+                  />
+                </div>
+                <div className="pt-4 text-left">
+                  <a
+                    href="https://www.google.com/maps"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-extrabold text-brand-primary hover:underline flex items-center justify-end gap-1"
+                  >
+                    🗺️ تحديد الموقع على خرائط جوجل
+                  </a>
+                </div>
+              </div>
+
               {/* Action Buttons */}
               <div className="pt-4 border-t border-brand-cream-dark flex items-center justify-end gap-3">
                 <button
@@ -388,6 +496,53 @@ export default function BranchesPage() {
                   onChange={(e) => setEditBranchLocation(e.target.value)}
                   className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary"
                 />
+              </div>
+
+              {/* Coordinates Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-teal-dark block">خط العرض (Latitude):</label>
+                  <input
+                    type="text"
+                    placeholder="مثال: 21.4858"
+                    value={editBranchLat}
+                    onChange={(e) => setEditBranchLat(e.target.value)}
+                    className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-mono"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-teal-dark block">خط الطول (Longitude):</label>
+                  <input
+                    type="text"
+                    placeholder="مثال: 39.1925"
+                    value={editBranchLng}
+                    onChange={(e) => setEditBranchLng(e.target.value)}
+                    className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-teal-dark block">نصف قطر النطاق (بالمتر):</label>
+                  <input
+                    type="number"
+                    value={editBranchRadius}
+                    onChange={(e) => setEditBranchRadius(e.target.value)}
+                    className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-mono"
+                    required
+                  />
+                </div>
+                <div className="pt-4 text-left">
+                  <a
+                    href="https://www.google.com/maps"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-extrabold text-brand-primary hover:underline flex items-center justify-end gap-1"
+                  >
+                    🗺️ تحديد الموقع على خرائط جوجل
+                  </a>
+                </div>
               </div>
 
               {/* Action Buttons */}

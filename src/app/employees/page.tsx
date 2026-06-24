@@ -103,7 +103,8 @@ export default function EmployeesPage() {
       return;
     }
 
-    if (!empBranchId) {
+    const isGlobalRole = ['Admin', 'CEO', 'FinanceManager', 'Accountant', 'MaintenanceSupervisor', 'ProcurementOfficer'].includes(empRole);
+    if (!empBranchId && !isGlobalRole) {
       setModalError('الرجاء تحديد الفرع');
       return;
     }
@@ -116,7 +117,7 @@ export default function EmployeesPage() {
         name: empName.trim(),
         role: empRole,
         phoneNumber: empPhone.trim(),
-        branchId: empBranchId,
+        branchId: empBranchId || null,
         employeeType: empEmployeeType
       });
 
@@ -151,7 +152,7 @@ export default function EmployeesPage() {
     setEditingUser(user);
     setEditName(user.name);
     setEditRole(user.role);
-    setEditBranchId(user.branchId);
+    setEditBranchId(user.branchId || '');
     setEditPhone(user.phoneNumber);
     setEditEmployeeType(user.employeeType || 'Fixed');
     setModalError('');
@@ -184,7 +185,7 @@ export default function EmployeesPage() {
         name: editName.trim(),
         role: editRole,
         phoneNumber: editPhone.trim(),
-        branchId: editBranchId,
+        branchId: editBranchId || null,
         employeeType: editEmployeeType
       });
 
@@ -307,7 +308,7 @@ export default function EmployeesPage() {
                     <td className="px-6 py-4 font-medium text-muted">
                       {user.branch?.name === 'Sail Road Branch' ? 'فرع طريق السيل' : 
                        user.branch?.name === 'Beachside Resort Branch' ? 'فرع منتجع الشاطئ' : 
-                       (user.branch?.name || 'فرع غير محدد')}
+                       (user.branch?.name || 'عام (جميع الفروع)')}
                     </td>
 
                     {/* Employee Type */}
@@ -454,6 +455,7 @@ export default function EmployeesPage() {
                     onChange={(e) => setEmpBranchId(e.target.value)}
                     className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-medium"
                   >
+                    <option value="">عام (جميع الفروع)</option>
                     {branches.map(b => (
                       <option key={b.id} value={b.id}>
                         {b.name === 'Sail Road Branch' ? 'فرع طريق السيل' : b.name === 'Beachside Resort Branch' ? 'فرع منتجع الشاطئ' : b.name}
@@ -602,6 +604,7 @@ export default function EmployeesPage() {
                     onChange={(e) => setEditBranchId(e.target.value)}
                     className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-medium"
                   >
+                    <option value="">عام (جميع الفروع)</option>
                     {branches.map(b => (
                       <option key={b.id} value={b.id}>
                         {b.name === 'Sail Road Branch' ? 'فرع طريق السيل' : b.name === 'Beachside Resort Branch' ? 'فرع منتجع الشاطئ' : b.name}

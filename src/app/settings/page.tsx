@@ -13,13 +13,46 @@ export default function SettingsPage() {
   const [newBranchName, setNewBranchName] = useState('');
   const [newBranchLoc, setNewBranchLoc] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [botMenuSettings, setBotMenuSettings] = useState({
+    bot_menu_maintenance: true,
+    bot_menu_cleaning: true,
+    bot_menu_warehouse: true,
+    bot_menu_procurement: true,
+    bot_menu_techsupport: true,
+    bot_menu_lostfound: true,
+    bot_menu_damage: true,
+    bot_menu_loan: true,
+    bot_menu_leave: true,
+    bot_menu_other: true,
+  });
 
   const loadData = async () => {
     try {
-      const bData = await api.getBranches();
-      const uData = await api.getUsers();
+      const [bData, uData, sData] = await Promise.all([
+        api.getBranches(),
+        api.getUsers(),
+        api.getSystemSettings()
+      ]);
       setBranches(bData);
       setUsers(uData);
+
+      if (sData) {
+        if (sData.procurementApprovalThreshold) {
+          setThreshold(parseInt(sData.procurementApprovalThreshold, 10) || 5000);
+        }
+        setBotMenuSettings({
+          bot_menu_maintenance: sData.bot_menu_maintenance !== 'false',
+          bot_menu_cleaning: sData.bot_menu_cleaning !== 'false',
+          bot_menu_warehouse: sData.bot_menu_warehouse !== 'false',
+          bot_menu_procurement: sData.bot_menu_procurement !== 'false',
+          bot_menu_techsupport: sData.bot_menu_techsupport !== 'false',
+          bot_menu_lostfound: sData.bot_menu_lostfound !== 'false',
+          bot_menu_damage: sData.bot_menu_damage !== 'false',
+          bot_menu_loan: sData.bot_menu_loan !== 'false',
+          bot_menu_leave: sData.bot_menu_leave !== 'false',
+          bot_menu_other: sData.bot_menu_other !== 'false',
+        });
+      }
     } catch (e) {
       console.error(e);
     }
@@ -41,13 +74,31 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSaveThreshold = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (role !== Role.Admin) return;
     setIsSaving(true);
-    setTimeout(() => {
+    try {
+      await api.updateSystemSettings({
+        procurementApprovalThreshold: String(threshold),
+        bot_menu_maintenance: String(botMenuSettings.bot_menu_maintenance),
+        bot_menu_cleaning: String(botMenuSettings.bot_menu_cleaning),
+        bot_menu_warehouse: String(botMenuSettings.bot_menu_warehouse),
+        bot_menu_procurement: String(botMenuSettings.bot_menu_procurement),
+        bot_menu_techsupport: String(botMenuSettings.bot_menu_techsupport),
+        bot_menu_lostfound: String(botMenuSettings.bot_menu_lostfound),
+        bot_menu_damage: String(botMenuSettings.bot_menu_damage),
+        bot_menu_loan: String(botMenuSettings.bot_menu_loan),
+        bot_menu_leave: String(botMenuSettings.bot_menu_leave),
+        bot_menu_other: String(botMenuSettings.bot_menu_other),
+      });
+      alert('تم حفظ إعدادات النظام وتخصيص قائمة البوت بنجاح!');
+    } catch (err) {
+      console.error(err);
+      alert('حدث خطأ أثناء حفظ الإعدادات.');
+    } finally {
       setIsSaving(false);
-      alert('تم تحديث السقف المالي للمشتريات بنجاح!');
-    }, 800);
+    }
   };
 
   const handleAddBranch = (e: React.FormEvent) => {
@@ -73,15 +124,16 @@ export default function SettingsPage() {
       
       {/* System Settings Form */}
       <div className="bg-white rounded-xl border border-brand-secondary/20 shadow-sm overflow-hidden p-6 space-y-6">
-        <div>
-          <h3 className="text-sm font-bold text-brand-teal-dark uppercase tracking-wider">السقوف المالية والحدود</h3>
-          <p className="text-xs text-muted">تحديد الضوابط المالية لأتمتة تحويل وتوجيه الموافقات في الفندق.</p>
-        </div>
-
-        <form onSubmit={handleSaveThreshold} className="space-y-4 max-w-md">
-          <div className="space-y-1.5">
-            <label htmlFor="threshold-input" className="block text-xs font-bold text-brand-teal-dark/70 uppercase">حد الموافقة التلقائي للمشتريات ($)</label>
-            <div className="flex gap-2">
+        <form onSubmit={handleSaveSettings} className="space-y-6">
+          
+          {/* Threshold Section */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-brand-teal-dark uppercase tracking-wider">السقوف المالية والحدود</h3>
+              <p className="text-xs text-muted">تحديد الضوابط المالية لأتمتة تحويل وتوجيه الموافقات في الفندق.</p>
+            </div>
+            <div className="space-y-1.5 max-w-md">
+              <label htmlFor="threshold-input" className="block text-xs font-bold text-brand-teal-dark/70 uppercase">حد الموافقة التلقائي للمشتريات ($)</label>
               <input
                 id="threshold-input"
                 type="number"
@@ -90,22 +142,66 @@ export default function SettingsPage() {
                 onChange={(e) => setThreshold(parseInt(e.target.value) || 0)}
                 className="w-full text-xs p-2.5 bg-brand-cream-dark/20 border border-brand-secondary/35 rounded focus:outline-none focus:border-brand-secondary font-bold text-brand-teal-dark disabled:opacity-60 text-right"
               />
-              {isSettingsAdmin && (
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="bg-brand-primary hover:bg-brand-primary-hover text-white text-xs font-bold px-6 py-2.5 rounded shadow-md transition-all shrink-0"
-                >
-                  {isSaving ? 'جاري الحفظ...' : 'تحديث الحد'}
-                </button>
-              )}
             </div>
           </div>
-          {!isSettingsAdmin && (
-            <p className="text-[10px] text-red-650 font-bold italic">
-              ⚠️ يمتلك مسؤولو النظام فقط الصلاحيات لتحديث حدود موافقات المشتريات.
+
+          {/* WhatsApp Bot Menu Customization Section */}
+          <div className="border-t border-brand-cream-dark pt-6 space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-[#1C2D42] uppercase tracking-wider">تخصيص قائمة خيارات بوت الواتساب</h3>
+              <p className="text-xs text-slate-400">حدد الخدمات التي تود إتاحتها أو إيقافها مؤقتاً في قائمة خيارات البوت المتاحة للموظفين.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { key: 'bot_menu_maintenance', label: '🛠️ طلب صيانة عامة' },
+                { key: 'bot_menu_cleaning', label: '🧹 نظافة وتجهيز الغرف' },
+                { key: 'bot_menu_warehouse', label: '📦 طلب صرف من المستودع' },
+                { key: 'bot_menu_procurement', label: '🛒 طلب شراء خارجي' },
+                { key: 'bot_menu_techsupport', label: '💻 بلاغ دعم فني وتقني' },
+                { key: 'bot_menu_lostfound', label: '🛎️ تسجيل مفقودات' },
+                { key: 'bot_menu_damage', label: '💥 تسجيل تلفيات وعوارض' },
+                { key: 'bot_menu_loan', label: '💰 تقديم طلب سلفة مالية' },
+                { key: 'bot_menu_leave', label: '🏖️ تقديم طلب إجازة عمل' },
+                { key: 'bot_menu_other', label: '📋 طلبات أخرى وإدارية' },
+              ].map(item => (
+                <label
+                  key={item.key}
+                  className="flex items-center gap-3 p-3 rounded-lg border border-slate-150 hover:bg-slate-50 transition cursor-pointer select-none"
+                >
+                  <input
+                    type="checkbox"
+                    disabled={!isSettingsAdmin}
+                    checked={(botMenuSettings as any)[item.key]}
+                    onChange={(e) => setBotMenuSettings({
+                      ...botMenuSettings,
+                      [item.key]: e.target.checked
+                    })}
+                    className="w-4 h-4 text-brand-primary border-gray-300 rounded focus:ring-brand-primary cursor-pointer"
+                  />
+                  <span className="text-xs font-bold text-brand-teal-dark">{item.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Button */}
+          {isSettingsAdmin ? (
+            <div className="pt-4 border-t border-brand-cream-dark flex justify-end">
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="bg-brand-primary hover:bg-brand-primary-hover text-white text-xs font-bold px-8 py-3 rounded-lg shadow-md transition-all shrink-0 cursor-pointer disabled:opacity-50"
+              >
+                {isSaving ? 'جاري حفظ الإعدادات...' : 'حفظ وتحديث الإعدادات'}
+              </button>
+            </div>
+          ) : (
+            <p className="text-[10px] text-red-650 font-bold italic pt-2">
+              ⚠️ يمتلك مسؤولو النظام فقط الصلاحيات لتحديث إعدادات البوت والحدود المالية.
             </p>
           )}
+
         </form>
       </div>
 
