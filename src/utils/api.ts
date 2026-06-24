@@ -5110,21 +5110,47 @@ export const api = {
   getCurrentUser: async (): Promise<User> => {
     try {
       const res = await fetch(`${BACKEND_URL}/auth/me`, {
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(5000)
       });
       if (res.ok) {
         const payload = await res.json();
         return hydrateUsers([payload.data])[0];
       }
     } catch (e) {
-      console.warn('API getCurrentUser error, falling back to mock:', e);
+      console.warn('API getCurrentUser error, falling back to mock/decode:', e);
     }
     
     const token = typeof window !== 'undefined' ? localStorage.getItem('rahti_token') : null;
-    if (token && token.startsWith('mock-jwt-token-for-')) {
-      const userId = token.replace('mock-jwt-token-for-', '');
-      const user = MOCK_USERS.find(u => u.id === userId);
-      if (user) return hydrateUsers([user])[0];
+    if (token) {
+      if (token.startsWith('mock-jwt-token-for-')) {
+        const userId = token.replace('mock-jwt-token-for-', '');
+        const user = MOCK_USERS.find(u => u.id === userId);
+        if (user) return hydrateUsers([user])[0];
+      } else {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(
+            window.atob(base64)
+              .split('')
+              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          );
+          const payload = JSON.parse(jsonPayload);
+          if (payload && payload.userId) {
+            const user: User = {
+              id: payload.userId,
+              name: payload.name || 'مستخدم',
+              role: payload.role as Role || Role.Admin,
+              phoneNumber: '',
+              branchId: payload.branchId || null
+            };
+            return hydrateUsers([user])[0];
+          }
+        } catch (jwtErr) {
+          console.error('Failed to decode JWT token:', jwtErr);
+        }
+      }
     }
     throw new Error('لم يتم العثور على مستخدم نشط.');
   },
