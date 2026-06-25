@@ -1720,7 +1720,7 @@ let localShiftReports = [...MOCK_SHIFT_REPORTS];
 export const api = {
   getBranches: async (): Promise<Branch[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/branches`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/branches`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -1733,7 +1733,7 @@ export const api = {
 
   getUsers: async (): Promise<User[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/users`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/users`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return hydrateUsers(payload.data);
@@ -1750,7 +1750,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -1777,7 +1777,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -1800,7 +1800,7 @@ export const api = {
     try {
       const res = await fetch(`${BACKEND_URL}/inventory/${id}`, {
         method: 'DELETE',
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) return;
     } catch (e) {
@@ -1819,7 +1819,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -1844,7 +1844,7 @@ export const api = {
     try {
       const res = await fetch(`${BACKEND_URL}/users/${id}`, {
         method: 'DELETE',
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) return;
     } catch (e) {
@@ -1859,7 +1859,7 @@ export const api = {
 
   getUser: async (id: string): Promise<User> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/users`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/users`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         const users = hydrateUsers(payload.data);
@@ -1880,7 +1880,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newBranchId, reason }),
-        signal: AbortSignal.timeout(2000)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -1901,7 +1901,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -1926,7 +1926,7 @@ export const api = {
     try {
       const res = await fetch(`${BACKEND_URL}/branches/${id}`, {
         method: 'DELETE',
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) return;
     } catch (e) {
@@ -1946,7 +1946,7 @@ export const api = {
         const params = new URLSearchParams(filters);
         url += `?${params.toString()}`;
       }
-      const res = await fetch(url, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -1966,7 +1966,7 @@ export const api = {
 
   getRequestById: async (id: string): Promise<RequestItem> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/requests/${id}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/requests/${id}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -1985,7 +1985,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2024,7 +2024,7 @@ export const api = {
         const params = new URLSearchParams(filters);
         url += `?${params.toString()}`;
       }
-      const res = await fetch(url, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2048,7 +2048,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2080,7 +2080,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2124,7 +2124,7 @@ export const api = {
         });
         url += `?${params.toString()}`;
       }
-      const res = await fetch(url, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2144,7 +2144,7 @@ export const api = {
 
   getShiftReportById: async (id: string): Promise<ShiftReport> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/shift-reports/${id}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/shift-reports/${id}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2163,7 +2163,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2205,7 +2205,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2248,7 +2248,7 @@ export const api = {
     try {
       const res = await fetch(`${BACKEND_URL}/shift-reports/${id}`, {
         method: 'DELETE',
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) return;
     } catch (e) {
@@ -2267,7 +2267,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reviewerId }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2299,7 +2299,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reviewerId, reason }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2329,7 +2329,7 @@ export const api = {
   getReporterStats: async (reporterId: string, preserveHistory: boolean = true): Promise<any> => {
     try {
       const res = await fetch(`${BACKEND_URL}/shift-reports/stats/${reporterId}?preserveHistory=${preserveHistory}`, {
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2366,7 +2366,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newBranchId, preserveHistory }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2390,7 +2390,7 @@ export const api = {
   getShifts: async (branchId?: string): Promise<Shift[]> => {
     try {
       const url = branchId ? `${BACKEND_URL}/shifts/branch/${branchId}` : `${BACKEND_URL}/shifts`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2407,7 +2407,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2435,7 +2435,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2455,7 +2455,7 @@ export const api = {
     try {
       const res = await fetch(`${BACKEND_URL}/shifts/${id}`, {
         method: 'DELETE',
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) return;
     } catch (e) {
@@ -2470,7 +2470,7 @@ export const api = {
   getTodayAttendance: async (branchId?: string): Promise<AttendanceLog[]> => {
     try {
       const url = branchId ? `${BACKEND_URL}/attendance/today?branchId=${branchId}` : `${BACKEND_URL}/attendance/today`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2487,7 +2487,7 @@ export const api = {
 
   getEmployeeAttendanceHistory: async (userId: string): Promise<AttendanceLog[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/attendance/history/${userId}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/attendance/history/${userId}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2500,7 +2500,7 @@ export const api = {
 
   getAttendanceSummary: async (): Promise<any> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/attendance/summary`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/attendance/summary`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2540,7 +2540,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, lat, lng }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2592,7 +2592,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, lat, lng }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2643,7 +2643,7 @@ export const api = {
       const q = new URLSearchParams();
       if (filters?.status) q.append('status', filters.status);
       if (filters?.userId) q.append('userId', filters.userId);
-      const res = await fetch(`${BACKEND_URL}/loans?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/loans?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2663,7 +2663,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2691,7 +2691,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reviewerId, status, reviewNote }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2716,7 +2716,7 @@ export const api = {
 
   getEmployeeLoanHistory: async (userId: string): Promise<LoanRequest[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/loans/user/${userId}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/loans/user/${userId}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2733,7 +2733,7 @@ export const api = {
       if (filters?.status) q.append('status', filters.status);
       if (filters?.userId) q.append('userId', filters.userId);
       if (filters?.leaveType) q.append('leaveType', filters.leaveType);
-      const res = await fetch(`${BACKEND_URL}/leaves?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/leaves?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2754,7 +2754,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2787,7 +2787,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reviewerId, status, reviewNote }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2812,7 +2812,7 @@ export const api = {
 
   getLeaveBalance: async (userId: string): Promise<any> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/leaves/balance/${userId}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/leaves/balance/${userId}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2832,7 +2832,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -2863,7 +2863,7 @@ export const api = {
       if (filters?.dateFrom) q.append('dateFrom', filters.dateFrom);
       if (filters?.dateTo) q.append('dateTo', filters.dateTo);
 
-      const res = await fetch(`${BACKEND_URL}/maintenance?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/maintenance?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2892,7 +2892,7 @@ export const api = {
 
   getMaintenanceStats: async (): Promise<any> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/maintenance/stats`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/maintenance/stats`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2934,7 +2934,7 @@ export const api = {
 
   getMaintenanceById: async (id: string): Promise<MaintenanceRequest> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/maintenance/${id}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/maintenance/${id}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -2961,7 +2961,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3009,7 +3009,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ technicianId, supervisorId: sId }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3054,7 +3054,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ technicianId: tId }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3096,7 +3096,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ technicianId: tId, completionNote: note, completionPhotoUrl: photoUrl }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3142,7 +3142,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approverId: aId, supervisorNote: note }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3187,7 +3187,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approverId: aId, rejectionReason: reason }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3231,7 +3231,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ technicianId: tId, description }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3274,7 +3274,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ supervisorId: sId }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3312,7 +3312,7 @@ export const api = {
 
   getTechnicianWorkload: async (): Promise<any[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/maintenance/workload`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/maintenance/workload`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -3339,7 +3339,7 @@ export const api = {
 
   getWarehouseCategories: async (): Promise<ItemCategory[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/warehouse/categories`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/warehouse/categories`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -3355,7 +3355,7 @@ export const api = {
       const q = new URLSearchParams();
       if (filters?.categoryId) q.append('categoryId', filters.categoryId);
       if (filters?.search) q.append('search', filters.search);
-      const res = await fetch(`${BACKEND_URL}/warehouse/items?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/warehouse/items?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -3380,7 +3380,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3417,7 +3417,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3434,7 +3434,7 @@ export const api = {
 
   getBranchStock: async (branchId: string): Promise<StockEntry[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/warehouse/stock/${branchId}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/warehouse/stock/${branchId}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -3451,7 +3451,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3512,7 +3512,7 @@ export const api = {
       if (filters?.status) q.append('status', filters.status);
       if (filters?.branchId) q.append('branchId', filters.branchId);
       if (filters?.itemId) q.append('itemId', filters.itemId);
-      const res = await fetch(`${BACKEND_URL}/warehouse/requests?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/warehouse/requests?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -3533,7 +3533,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3566,7 +3566,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approverId, quantityIssued }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3637,7 +3637,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approverId, rejectionReason }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3661,7 +3661,7 @@ export const api = {
   getWarehouseStats: async (branchId?: string): Promise<any> => {
     try {
       const q = branchId ? `?branchId=${branchId}` : '';
-      const res = await fetch(`${BACKEND_URL}/warehouse/stats${q}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/warehouse/stats${q}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -3692,7 +3692,7 @@ export const api = {
       if (filters?.status) q.append('status', filters.status);
       if (filters?.branchId) q.append('branchId', filters.branchId);
       if (filters?.source) q.append('source', filters.source);
-      const res = await fetch(`${BACKEND_URL}/warehouse/procurement?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/warehouse/procurement?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -3709,7 +3709,7 @@ export const api = {
 
   getProcurementById: async (id: string): Promise<ProcurementRequest> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/warehouse/procurement/${id}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/warehouse/procurement/${id}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -3728,7 +3728,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3758,7 +3758,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approverId, note }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3785,7 +3785,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approverId, reason }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3812,7 +3812,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3841,7 +3841,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ receiverId, quantityReceived }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3883,7 +3883,7 @@ export const api = {
 
   getSuppliers: async (): Promise<Supplier[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/warehouse/suppliers`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/warehouse/suppliers`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -3900,7 +3900,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3931,7 +3931,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -3960,7 +3960,7 @@ export const api = {
       if (filters?.branchId) queryParams.append('branchId', filters.branchId);
       if (filters?.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
       if (filters?.dateTo) queryParams.append('dateTo', filters.dateTo);
-      const res = await fetch(`${BACKEND_URL}/lostfound?${queryParams.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/lostfound?${queryParams.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -3980,7 +3980,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -4015,7 +4015,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data || {}),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -4042,7 +4042,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -4071,7 +4071,7 @@ export const api = {
       const res = await fetch(`${BACKEND_URL}/lostfound/${id}/archive`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -4099,7 +4099,7 @@ export const api = {
       if (filters?.reservationRef) queryParams.append('reservationRef', filters.reservationRef);
       if (filters?.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
       if (filters?.dateTo) queryParams.append('dateTo', filters.dateTo);
-      const res = await fetch(`${BACKEND_URL}/damage?${queryParams.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/damage?${queryParams.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4120,7 +4120,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -4157,7 +4157,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -4186,7 +4186,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -4216,7 +4216,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refusalReason: reason }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -4242,7 +4242,7 @@ export const api = {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ waivedBy, waiverReason: reason }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -4268,7 +4268,7 @@ export const api = {
     try {
       const queryParams = new URLSearchParams();
       if (branchId) queryParams.append('branchId', branchId);
-      const res = await fetch(`${BACKEND_URL}/damage/stats?${queryParams.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/damage/stats?${queryParams.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4292,7 +4292,7 @@ export const api = {
       const q = new URLSearchParams();
       if (branchId) q.append('branchId', branchId);
       if (date) q.append('date', date);
-      const res = await fetch(`${BACKEND_URL}/reports/financial/daily?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/financial/daily?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4363,7 +4363,7 @@ export const api = {
       if (branchId) q.append('branchId', branchId);
       if (from) q.append('from', from);
       if (to) q.append('to', to);
-      const res = await fetch(`${BACKEND_URL}/reports/financial/period?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/financial/period?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4388,7 +4388,7 @@ export const api = {
       if (branchId) q.append('branchId', branchId);
       if (year !== undefined) q.append('year', year.toString());
       if (month !== undefined) q.append('month', month.toString());
-      const res = await fetch(`${BACKEND_URL}/reports/financial/monthly?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/financial/monthly?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4427,7 +4427,7 @@ export const api = {
       if (branchId) q.append('branchId', branchId);
       if (from) q.append('from', from);
       if (to) q.append('to', to);
-      const res = await fetch(`${BACKEND_URL}/reports/attendance?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/attendance?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4496,7 +4496,7 @@ export const api = {
       if (branchId) q.append('branchId', branchId);
       if (from) q.append('from', from);
       if (to) q.append('to', to);
-      const res = await fetch(`${BACKEND_URL}/reports/leave?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/leave?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4552,7 +4552,7 @@ export const api = {
     try {
       const q = new URLSearchParams();
       if (branchId) q.append('branchId', branchId);
-      const res = await fetch(`${BACKEND_URL}/reports/loans?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/loans?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4623,7 +4623,7 @@ export const api = {
       if (branchId) q.append('branchId', branchId);
       if (from) q.append('from', from);
       if (to) q.append('to', to);
-      const res = await fetch(`${BACKEND_URL}/reports/maintenance?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/maintenance?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4721,7 +4721,7 @@ export const api = {
     try {
       const q = new URLSearchParams();
       if (branchId) q.append('branchId', branchId);
-      const res = await fetch(`${BACKEND_URL}/reports/inventory?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/inventory?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4797,7 +4797,7 @@ export const api = {
       if (branchId) q.append('branchId', branchId);
       if (from) q.append('from', from);
       if (to) q.append('to', to);
-      const res = await fetch(`${BACKEND_URL}/reports/procurement?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/procurement?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4871,7 +4871,7 @@ export const api = {
       if (branchId) q.append('branchId', branchId);
       if (from) q.append('from', from);
       if (to) q.append('to', to);
-      const res = await fetch(`${BACKEND_URL}/reports/damage?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/damage?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -4952,7 +4952,7 @@ export const api = {
       if (branchId) q.append('branchId', branchId);
       if (from) q.append('from', from);
       if (to) q.append('to', to);
-      const res = await fetch(`${BACKEND_URL}/reports/lostfound?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/lostfound?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -5013,7 +5013,7 @@ export const api = {
       const q = new URLSearchParams();
       if (from) q.append('from', from);
       if (to) q.append('to', to);
-      const res = await fetch(`${BACKEND_URL}/reports/executive?${q.toString()}`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${BACKEND_URL}/reports/executive?${q.toString()}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -5083,7 +5083,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ branchId }),
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         return await res.json();
@@ -5100,7 +5100,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, password }),
-        signal: AbortSignal.timeout(3000)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -5131,7 +5131,7 @@ export const api = {
   getCurrentUser: async (): Promise<User> => {
     try {
       const res = await fetch(`${BACKEND_URL}/auth/me`, {
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -5213,7 +5213,7 @@ export const api = {
       if (filters?.employeeId) q.append('employeeId', filters.employeeId);
 
       const res = await fetch(`${BACKEND_URL}/documents?${q.toString()}`, {
-        signal: AbortSignal.timeout(2000)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -5313,7 +5313,7 @@ export const api = {
     try {
       const res = await fetch(`${BACKEND_URL}/documents/${id}`, {
         method: 'DELETE',
-        signal: AbortSignal.timeout(1500)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         return await res.json();
@@ -5337,7 +5337,7 @@ export const api = {
 
   getSystemSettings: async (): Promise<any> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/system/settings`, { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`${BACKEND_URL}/system/settings`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -5367,7 +5367,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
-        signal: AbortSignal.timeout(2000)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -5381,7 +5381,7 @@ export const api = {
 
   getActivityLogs: async (): Promise<any[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/system/logs`, { signal: AbortSignal.timeout(2500) });
+      const res = await fetch(`${BACKEND_URL}/system/logs`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -5396,7 +5396,7 @@ export const api = {
 
   getRolePermissions: async (): Promise<any> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/system/roles`, { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`${BACKEND_URL}/system/roles`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -5421,7 +5421,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(roles),
-        signal: AbortSignal.timeout(2000)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -5437,7 +5437,7 @@ export const api = {
     try {
       const res = await fetch(`${BACKEND_URL}/users/${userId}/status`, {
         method: 'PATCH',
-        signal: AbortSignal.timeout(2000)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -5455,7 +5455,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(2000)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -5469,7 +5469,7 @@ export const api = {
 
   getTransferHistory: async (userId: string): Promise<any[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/hr/transfers/${userId}`, { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`${BACKEND_URL}/hr/transfers/${userId}`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -5482,7 +5482,7 @@ export const api = {
 
   getFinanceLoanMetrics: async (): Promise<any> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/finance/loans/metrics`, { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`${BACKEND_URL}/finance/loans/metrics`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -5495,7 +5495,7 @@ export const api = {
 
   getUnitsOfMeasure: async (): Promise<any[]> => {
     try {
-      const res = await fetch(`${BACKEND_URL}/warehouse/units`, { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`${BACKEND_URL}/warehouse/units`, { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const payload = await res.json();
         return payload.data;
@@ -5516,7 +5516,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(2000)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -5534,7 +5534,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-        signal: AbortSignal.timeout(2000)
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const payload = await res.json();
@@ -5550,7 +5550,7 @@ export const api = {
     try {
       await fetch(`${BACKEND_URL}/auth/logout`, {
         method: 'POST',
-        signal: AbortSignal.timeout(1000)
+        signal: AbortSignal.timeout(15000)
       });
     } catch (e) {
       console.warn('API logout error:', e);
