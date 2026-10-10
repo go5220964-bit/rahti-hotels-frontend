@@ -3,12 +3,14 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useRole } from './RoleContext';
 
 interface SidebarProps {
   currentRole: string;
 }
 
 export default function Sidebar({ currentRole }: SidebarProps) {
+  const { user } = useRole();
   const pathname = usePathname();
   const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>({});
 
@@ -29,19 +31,8 @@ export default function Sidebar({ currentRole }: SidebarProps) {
   };
 
   const getUserName = (roleStr: string) => {
-    switch (roleStr) {
-      case 'Admin': return 'أمان السعيد';
-      case 'CEO': return 'إيلينا بتروفا';
-      case 'FinanceManager': return 'سارة كونرز';
-      case 'Technician': return 'توماس ميلر';
-      case 'WarehouseManager': return 'ماركوس فانس';
-      case 'Receptionist': return 'لارا كروفت';
-      case 'Accountant': return 'محاسب الفندق';
-      case 'BranchManager': return 'مدير الفرع';
-      case 'MaintenanceSupervisor': return 'مشرف الصيانة';
-      case 'ProcurementOfficer': return 'مسؤول المشتريات';
-      default: return 'مستخدم النظام';
-    }
+    if (user?.name) return user.name;
+    return translateRole(roleStr);
   };
 
   const getUserBranch = (roleStr: string) => {

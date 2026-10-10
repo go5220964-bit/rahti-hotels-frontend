@@ -4,6 +4,7 @@ import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Role } from '../types_local';
 import api from '../utils/api';
+import { useRole } from './RoleContext';
 
 interface HeaderProps {
   currentRole: Role;
@@ -11,6 +12,7 @@ interface HeaderProps {
 }
 
 export default function Header({ currentRole, onRoleChange }: HeaderProps) {
+  const { user } = useRole();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -70,19 +72,8 @@ export default function Header({ currentRole, onRoleChange }: HeaderProps) {
   };
 
   const getUserName = (roleStr: string) => {
-    switch (roleStr) {
-      case Role.Admin: return 'أمان السعيد';
-      case Role.CEO: return 'إيلينا بتروفا';
-      case Role.FinanceManager: return 'سارة كونرز';
-      case Role.Technician: return 'توماس ميلر';
-      case Role.WarehouseManager: return 'ماركوس فانس';
-      case Role.Receptionist: return 'لارا كروفت';
-      case Role.Accountant: return 'محاسب الفندق';
-      case Role.BranchManager: return 'مدير الفرع';
-      case Role.MaintenanceSupervisor: return 'مشرف الصيانة';
-      case Role.ProcurementOfficer: return 'مسؤول المشتريات';
-      default: return 'مستخدم النظام';
-    }
+    if (user?.name) return user.name;
+    return translateRole(roleStr as Role);
   };
 
   return (

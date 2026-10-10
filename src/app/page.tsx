@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 
 export default function Home() {
-  const { role: currentRole } = useRole();
+  const { role: currentRole, user } = useRole();
   const [users, setUsers] = useState<User[]>([]);
   const [attendance, setAttendance] = useState<AttendanceLog[]>([]);
   const [shiftReports, setShiftReports] = useState<ShiftReport[]>([]);
@@ -65,20 +65,8 @@ export default function Home() {
   };
 
   const getUserName = (roleStr: string) => {
-    switch (roleStr) {
-      case 'Admin': return 'أمان السعيد';
-      case 'CEO': return 'إيلينا بتروفا';
-      case 'FinanceManager': return 'سارة كونرز';
-      case 'Technician': return 'توماس ميلر';
-      case 'WarehouseManager': return 'ماركوس فانس';
-      case 'Receptionist': return 'لارا كروفت';
-      case 'Accountant': return 'محاسب الفندق';
-      case 'BranchManager': return 'مدير الفرع';
-      case 'MaintenanceSupervisor': return 'مشرف الصيانة';
-      case 'ProcurementOfficer': return 'مسؤول المشتريات';
-      case 'HousekeepingStaff': return 'فاطمة أحمد';
-      default: return 'مستخدم النظام';
-    }
+    if (user?.name) return user.name;
+    return translateRole(roleStr);
   };
 
   const getUserBranch = (roleStr: string) => {

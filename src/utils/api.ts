@@ -4227,11 +4227,20 @@ export const api = {
   },
 
   login: async (phone: string, password: string): Promise<{ token: string; user: User }> => {
+    let cleanPhone = phone.trim();
+    if (cleanPhone.startsWith('05')) {
+      cleanPhone = '+966' + cleanPhone.slice(1);
+    } else if (cleanPhone.startsWith('5') && cleanPhone.length === 9) {
+      cleanPhone = '+966' + cleanPhone;
+    } else if (cleanPhone.startsWith('966')) {
+      cleanPhone = '+' + cleanPhone;
+    }
+
     try {
       const res = await fetch(`${BACKEND_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password }),
+        body: JSON.stringify({ phone: cleanPhone, password }),
         signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
@@ -4247,7 +4256,7 @@ export const api = {
       }
     }
     
-    const matchedUser = MOCK_USERS.find(u => u.phoneNumber === phone);
+    const matchedUser = MOCK_USERS.find(u => u.phoneNumber === cleanPhone || u.phoneNumber === phone);
     if (!matchedUser) {
       throw new Error('رقم الهاتف غير مسجل لدينا.');
     }
