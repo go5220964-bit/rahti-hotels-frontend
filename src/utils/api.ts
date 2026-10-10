@@ -509,7 +509,7 @@ export interface ProcurementRequest {
 }
 
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000/api';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://rahti-hotels-backend.onrender.com/api';
 
 // Global fetch override for token header injection
 if (typeof window !== 'undefined') {
