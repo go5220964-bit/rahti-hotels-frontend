@@ -51,6 +51,8 @@ export default function Header({ currentRole, onRoleChange }: HeaderProps) {
       case Role.BranchManager: return 'bg-orange-100 text-orange-800 border-orange-300';
       case Role.MaintenanceSupervisor: return 'bg-cyan-100 text-cyan-800 border-cyan-300';
       case Role.ProcurementOfficer: return 'bg-amber-100 text-amber-800 border-amber-300';
+      case Role.HousekeepingSupervisor: return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case Role.HousekeepingStaff: return 'bg-lime-100 text-lime-800 border-lime-300';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
@@ -67,6 +69,8 @@ export default function Header({ currentRole, onRoleChange }: HeaderProps) {
       case Role.BranchManager: return 'مدير الفرع';
       case Role.MaintenanceSupervisor: return 'مشرف الصيانة';
       case Role.ProcurementOfficer: return 'مسؤول المشتريات';
+      case Role.HousekeepingSupervisor: return 'مشرف هاوسكيبنج';
+      case Role.HousekeepingStaff: return 'عامل نظافة';
       default: return roleStr;
     }
   };
@@ -106,6 +110,7 @@ export default function Header({ currentRole, onRoleChange }: HeaderProps) {
               <option value={Role.BranchManager}>مدير الفرع (مدير فرع طريق السيل)</option>
               <option value={Role.MaintenanceSupervisor}>مشرف الصيانة (مشرف الصيانة)</option>
               <option value={Role.ProcurementOfficer}>مسؤول المشتريات (مسؤول المشتريات)</option>
+              <option value={Role.HousekeepingSupervisor}>مشرف هاوسكيبنج (مشرف الهاوسكيبنج)</option>
             </select>
           </div>
         )}

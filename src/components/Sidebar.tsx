@@ -26,6 +26,8 @@ export default function Sidebar({ currentRole }: SidebarProps) {
       case 'BranchManager': return 'مدير الفرع';
       case 'MaintenanceSupervisor': return 'مشرف الصيانة';
       case 'ProcurementOfficer': return 'مسؤول المشتريات';
+      case 'HousekeepingSupervisor': return 'مشرف هاوسكيبنج';
+      case 'HousekeepingStaff': return 'عامل نظافة';
       default: return roleStr;
     }
   };
@@ -54,7 +56,7 @@ export default function Sidebar({ currentRole }: SidebarProps) {
     {
       id: 'g-dashboard',
       name: 'لوحة المعلومات',
-      roles: ['Admin', 'CEO', 'FinanceManager', 'Accountant', 'BranchManager', 'Receptionist', 'Technician', 'WarehouseManager', 'MaintenanceSupervisor', 'ProcurementOfficer'],
+      roles: ['Admin', 'CEO', 'FinanceManager', 'Accountant', 'BranchManager', 'Receptionist', 'Technician', 'WarehouseManager', 'MaintenanceSupervisor', 'ProcurementOfficer', 'HousekeepingSupervisor'],
       items: [
         {
           name: 'الرئيسية',
@@ -132,7 +134,7 @@ export default function Sidebar({ currentRole }: SidebarProps) {
     {
       id: 'g-branch-management',
       name: 'إدارة الفرع والإشراف الداخلي',
-      roles: ['Admin', 'CEO', 'BranchManager'],
+      roles: ['Admin', 'CEO', 'BranchManager', 'HousekeepingSupervisor'],
       items: [
         {
           name: 'المفقودات والتلفيات',
@@ -210,7 +212,7 @@ export default function Sidebar({ currentRole }: SidebarProps) {
     {
       id: 'g-maintenance',
       name: 'إدارة الصيانة',
-      roles: ['Admin', 'CEO', 'MaintenanceSupervisor'],
+      roles: ['Admin', 'CEO', 'MaintenanceSupervisor', 'HousekeepingSupervisor'],
       items: [
         {
           name: 'بلاغات الصيانة',

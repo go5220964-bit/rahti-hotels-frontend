@@ -30,7 +30,8 @@ const ROLES = [
   { key: 'Receptionist', label: 'موظف الاستقبال (Receptionist)' },
   { key: 'Accountant', label: 'المحاسب (Accountant)' },
   { key: 'MaintenanceSupervisor', label: 'مشرف الصيانة (Supervisor)' },
-  { key: 'WarehouseManager', label: 'أمين المستودع (Storekeeper)' }
+  { key: 'WarehouseManager', label: 'أمين المستودع (Storekeeper)' },
+  { key: 'HousekeepingSupervisor', label: 'مشرف هاوسكيبنج (HousekeepingSupervisor)' }
 ];
 
 export default function SystemRolesPage() {

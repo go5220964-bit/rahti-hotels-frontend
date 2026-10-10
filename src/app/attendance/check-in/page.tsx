@@ -65,6 +65,7 @@ function CheckInContent() {
       case 'BranchManager': return 'مدير الفرع';
       case 'MaintenanceSupervisor': return 'مشرف الصيانة';
       case 'ProcurementOfficer': return 'مسؤول المشتريات';
+      case 'HousekeepingSupervisor': return 'مشرف هاوسكيبنج';
       case 'HousekeepingStaff': return 'عامل نظافة';
       default: return roleStr;
     }

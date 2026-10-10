@@ -79,6 +79,8 @@ export default function SystemUsersPage() {
       case 'BranchManager': return 'مدير الفرع';
       case 'MaintenanceSupervisor': return 'مشرف الصيانة';
       case 'ProcurementOfficer': return 'مسؤول المشتريات';
+      case 'HousekeepingSupervisor': return 'مشرف هاوسكيبنج';
+      case 'HousekeepingStaff': return 'عامل نظافة';
       default: return roleStr;
     }
   };
@@ -354,6 +356,7 @@ export default function SystemUsersPage() {
                   <option value="Accountant">محاسب (Accountant)</option>
                   <option value="MaintenanceSupervisor">مشرف الصيانة (Supervisor)</option>
                   <option value="WarehouseManager">أمين المستودع (Storekeeper)</option>
+                  <option value="HousekeepingSupervisor">مشرف هاوسكيبنج (HousekeepingSupervisor)</option>
                 </select>
               </div>
 
@@ -473,6 +476,7 @@ export default function SystemUsersPage() {
                   <option value="Accountant">محاسب (Accountant)</option>
                   <option value="MaintenanceSupervisor">مشرف الصيانة (Supervisor)</option>
                   <option value="WarehouseManager">أمين المستودع (Storekeeper)</option>
+                  <option value="HousekeepingSupervisor">مشرف هاوسكيبنج (HousekeepingSupervisor)</option>
                 </select>
               </div>
 

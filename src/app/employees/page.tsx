@@ -78,6 +78,7 @@ export default function EmployeesPage() {
       case 'BranchManager': return 'مدير الفرع';
       case 'MaintenanceSupervisor': return 'مشرف الصيانة';
       case 'ProcurementOfficer': return 'مسؤول المشتريات';
+      case 'HousekeepingSupervisor': return 'مشرف هاوسكيبنج';
       case 'HousekeepingStaff': return 'عامل نظافة';
       default: return roleStr;
     }
@@ -441,6 +442,7 @@ export default function EmployeesPage() {
                     <option value="Receptionist">موظف استقبال (Receptionist)</option>
                     <option value="Technician">فني صيانة (Technician)</option>
                     <option value="MaintenanceSupervisor">مشرف الصيانة (MaintenanceSupervisor)</option>
+                    <option value="HousekeepingSupervisor">مشرف هاوسكيبنج (HousekeepingSupervisor)</option>
                     <option value="WarehouseManager">أمين المستودع (WarehouseManager)</option>
                     <option value="ProcurementOfficer">مسؤول المشتريات (ProcurementOfficer)</option>
                     <option value="HousekeepingStaff">عامل نظافة (HousekeepingStaff)</option>
@@ -590,6 +592,7 @@ export default function EmployeesPage() {
                     <option value="Receptionist">موظف استقبال (Receptionist)</option>
                     <option value="Technician">فني صيانة (Technician)</option>
                     <option value="MaintenanceSupervisor">مشرف الصيانة (MaintenanceSupervisor)</option>
+                    <option value="HousekeepingSupervisor">مشرف هاوسكيبنج (HousekeepingSupervisor)</option>
                     <option value="WarehouseManager">أمين المستودع (WarehouseManager)</option>
                     <option value="ProcurementOfficer">مسؤول المشتريات (ProcurementOfficer)</option>
                     <option value="HousekeepingStaff">عامل نظافة (HousekeepingStaff)</option>
