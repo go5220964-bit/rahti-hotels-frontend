@@ -87,7 +87,7 @@ export default function Home() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [u, att, sr, reqs, ln, lv, mnt, wl, whStats, stock, whRequests] = await Promise.all([
+      const results = await Promise.allSettled([
         api.getUsers(),
         api.getTodayAttendance(),
         api.getShiftReports(),
@@ -97,20 +97,24 @@ export default function Home() {
         api.getMaintenanceRequests(),
         api.getTechnicianWorkload(),
         api.getWarehouseStats(),
-        api.getBranchStock('b-1'),
+        api.getBranchStock('cmv1309b20000y5dimezw4ukr'),
         api.getWarehouseRequests()
       ]);
-      setUsers(u || []);
-      setAttendance(att || []);
-      setShiftReports(sr || []);
-      setRequests(reqs || []);
-      setLoans(ln || []);
-      setLeaves(lv || []);
-      setMntRequests(mnt || []);
-      setWorkloads(wl || []);
-      setWarehouseStats(whStats || { totalItems: 0, lowStockItems: 0, outOfStockItems: 0, pendingRequests: 0 });
-      setStockEntries(stock || []);
-      setWarehouseRequests(whRequests || []);
+
+      const val = (idx: number, fallback: any = []) => 
+        results[idx].status === 'fulfilled' ? (results[idx] as PromiseFulfilledResult<any>).value : fallback;
+
+      setUsers(val(0, []));
+      setAttendance(val(1, []));
+      setShiftReports(val(2, []));
+      setRequests(val(3, []));
+      setLoans(val(4, []));
+      setLeaves(val(5, []));
+      setMntRequests(val(6, []));
+      setWorkloads(val(7, []));
+      setWarehouseStats(val(8, { totalItems: 0, lowStockItems: 0, outOfStockItems: 0, pendingRequests: 0 }));
+      setStockEntries(val(9, []));
+      setWarehouseRequests(val(10, []));
     } catch (e) {
       console.error('Error loading dashboard data:', e);
     } finally {

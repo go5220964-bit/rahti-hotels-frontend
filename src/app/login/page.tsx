@@ -11,8 +11,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const { setUser, setRole } = useRole();
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('rahti_token');
+      if (token && token.startsWith('mock-jwt-token-for-')) {
+        localStorage.removeItem('rahti_token');
+      }
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,9 +45,8 @@ export default function LoginPage() {
       setUser(result.user);
       setRole(result.user.role);
 
-      // Redirect to main page
-      router.push('/');
-      router.refresh();
+      // Clean window navigation to completely refresh application state and role
+      window.location.href = '/';
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'فشل تسجيل الدخول. يرجى التحقق من بيانات الاعتماد والمحاولة مرة أخرى.');

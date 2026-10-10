@@ -65,7 +65,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
 
   return (
     <RoleContext.Provider value={{ role, setRole, user, setUser, loading }}>
-      {!loading ? children : (
+      {(!loading || pathname === '/login') ? children : (
         <div className="min-h-screen flex items-center justify-center bg-[#FAF9F5]">
           <div className="flex flex-col items-center gap-4">
             <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>

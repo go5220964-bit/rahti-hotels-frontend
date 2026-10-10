@@ -509,7 +509,9 @@ export interface ProcurementRequest {
 }
 
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://rahti-hotels-backend.onrender.com/api';
+const BACKEND_URL = (process.env.NEXT_PUBLIC_API_URL && !process.env.NEXT_PUBLIC_API_URL.includes('railway'))
+  ? process.env.NEXT_PUBLIC_API_URL
+  : 'https://rahti-hotels-backend.onrender.com/api';
 
 // Global fetch override for token header injection
 if (typeof window !== 'undefined') {
@@ -4270,53 +4272,60 @@ export const api = {
   },
 
   getCurrentUser: async (): Promise<User> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('rahti_token') : null;
+    if (!token) {
+      throw new Error('لم يتم العثور على رمز تسجيل دخول.');
+    }
+
+    if (token.startsWith('mock-jwt-token-for-')) {
+      const userId = token.replace('mock-jwt-token-for-', '');
+      const user = MOCK_USERS.find(u => u.id === userId);
+      if (user) return hydrateUsers([user])[0];
+      throw new Error('مستخدم غير صالح.');
+    }
+
     try {
       const res = await fetch(`${BACKEND_URL}/auth/me`, {
-        signal: AbortSignal.timeout(15000)
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        signal: AbortSignal.timeout(6000)
       });
       if (res.ok) {
         const payload = await res.json();
         return hydrateUsers([payload.data])[0];
       }
     } catch (e) {
-      console.warn('API getCurrentUser error, falling back to mock/decode:', e);
+      console.warn('API getCurrentUser error, falling back to decoding token payload:', e);
     }
     
-    const token = typeof window !== 'undefined' ? localStorage.getItem('rahti_token') : null;
-    if (token) {
-      if (token.startsWith('mock-jwt-token-for-')) {
-        const userId = token.replace('mock-jwt-token-for-', '');
-        const user = MOCK_USERS.find(u => u.id === userId);
-        if (user) return hydrateUsers([user])[0];
-      } else {
-        try {
-          const base64Url = token.split('.')[1];
-          let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          while (base64.length % 4) {
-            base64 += '=';
-          }
-          const jsonPayload = decodeURIComponent(
-            window.atob(base64)
-              .split('')
-              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-              .join('')
-          );
-          const payload = JSON.parse(jsonPayload);
-          if (payload && payload.userId) {
-            const user: User = {
-              id: payload.userId,
-              name: payload.name || 'مستخدم',
-              role: payload.role as Role || Role.Admin,
-              phoneNumber: '',
-              branchId: payload.branchId || null
-            };
-            return hydrateUsers([user])[0];
-          }
-        } catch (jwtErr) {
-          console.error('Failed to decode JWT token:', jwtErr);
-        }
+    try {
+      const base64Url = token.split('.')[1];
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) {
+        base64 += '=';
       }
+      const binary = window.atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const jsonPayload = new TextDecoder('utf-8').decode(bytes);
+      const payload = JSON.parse(jsonPayload);
+      if (payload && payload.userId) {
+        const user: User = {
+          id: payload.userId,
+          name: payload.name || 'مدير النظام',
+          role: (payload.role as Role) || Role.Admin,
+          phoneNumber: payload.phoneNumber || '+966563104828',
+          branchId: payload.branchId || null
+        };
+        return hydrateUsers([user])[0];
+      }
+    } catch (jwtErr) {
+      console.error('Failed to decode JWT token:', jwtErr);
     }
+    
     throw new Error('لم يتم العثور على مستخدم نشط.');
   },
 
