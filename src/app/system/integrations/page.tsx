@@ -1,198 +1,327 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { api } from '@/utils/api';
-import { useRole } from '@/components/RoleContext';
-import { Role } from '@/types_local';
-import { Link2, RotateCw, Save, Key, Globe, MessageSquare, Clock } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  RefreshCw,
+  CheckCircle2,
+  QrCode,
+  Smartphone,
+  LogOut,
+  X,
+  Wifi,
+  WifiOff
+} from 'lucide-react';
 
-export default function SystemIntegrationsPage() {
-  const { role: currentRole } = useRole();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+interface WhatsAppLiveStatus {
+  isConnected: boolean;
+  isConnecting: boolean;
+  connectedNumber: string | null;
+  hasQr: boolean;
+  qrCodeDataUrl?: string | null;
+}
 
-  // Settings states
-  const [whatsappToken, setWhatsappToken] = useState('');
-  const [webhookUrl, setWebhookUrl] = useState('');
-  const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [attendanceBuffer, setAttendanceBuffer] = useState('30');
+interface IntegrationConfig {
+  id: string;
+  badge: string;
+  badgeColor: string;
+  statusText: string;
+  title: string;
+  description: string;
+  buttonLabel: string;
+  apiKey: string;
+  endpointUrl: string;
+}
 
-  // Toast
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+const BACKEND_ROOT_URL = (
+  process.env.NEXT_PUBLIC_API_URL || 'https://rahti-hotels-backend.onrender.com/api'
+).replace(/\/api\/?$/, '');
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
+const INITIAL_INTEGRATIONS: IntegrationConfig[] = [
+  {
+    id: 'gemini',
+    badge: 'AI',
+    badgeColor: 'bg-purple-50 text-purple-600',
+    statusText: 'متصل (Gemini 2.5)',
+    title: 'محرك الذكاء الاصطناعي (Google Gemini)',
+    description: 'تحليل رسائل الموظفين وتلخيص تقارير مجموعات الواتساب تلقائياً',
+    buttonLabel: 'تعديل مفتاح Gemini API',
+    apiKey: 'GEMINI_API_KEY_ACTIVE',
+    endpointUrl: 'https://generativelanguage.googleapis.com'
+  },
+  {
+    id: 'shamous',
+    badge: 'شموس',
+    badgeColor: 'bg-emerald-50 text-emerald-600',
+    statusText: 'متصل',
+    title: 'نظام شموس الأمني',
+    description: 'إرسال بيانات النزلاء وحركات التسكين تلقائياً للجهات الأمنية',
+    buttonLabel: 'تعديل مفاتيح API',
+    apiKey: 'SHAMOUS_LIVE_TOKEN',
+    endpointUrl: 'https://api.shamous.gov.sa/v1'
+  },
+  {
+    id: 'zatca',
+    badge: 'زكاة',
+    badgeColor: 'bg-blue-50 text-blue-600',
+    statusText: 'مرحلة 2 (ZATCA)',
+    title: 'الفوترة الإلكترونية (ZATCA)',
+    description: 'ربط الفواتير الضريبية المباشرة والائتمانية مع هيئة الزكاة والضريبة والجمارك',
+    buttonLabel: 'إدارة الشهادات الرقمية',
+    apiKey: 'ZATCA_CSID_STAGE2',
+    endpointUrl: 'https://gw-fatoora.zatca.gov.sa'
+  }
+];
 
-  const loadSettings = async () => {
-    setLoading(true);
+export default function IntegrationsPage() {
+  const [waStatus, setWaStatus] = useState<WhatsAppLiveStatus>({
+    isConnected: false,
+    isConnecting: false,
+    connectedNumber: null,
+    hasQr: false,
+    qrCodeDataUrl: null
+  });
+  const [loadingWa, setLoadingWa] = useState<boolean>(true);
+  const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
+
+  const [integrations, setIntegrations] = useState<IntegrationConfig[]>(INITIAL_INTEGRATIONS);
+  const [editingItem, setEditingItem] = useState<IntegrationConfig | null>(null);
+  const [savedNotice, setSavedNotice] = useState<string | null>(null);
+
+  const fetchWhatsAppStatus = useCallback(async () => {
     try {
-      const data = await api.getSystemSettings();
-      // data is an array of { id, key, value }
-      const waToken = data.find((s: any) => s.key === 'whatsapp_token')?.value || '';
-      const webUrl = data.find((s: any) => s.key === 'webhook_url')?.value || '';
-      const gemKey = data.find((s: any) => s.key === 'gemini_api_key')?.value || '';
-      const attBuf = data.find((s: any) => s.key === 'attendance_buffer_minutes')?.value || '30';
-
-      setWhatsappToken(waToken);
-      setWebhookUrl(webUrl);
-      setGeminiApiKey(gemKey);
-      setAttendanceBuffer(attBuf);
+      setLoadingWa(true);
+      const res = await fetch(`${BACKEND_ROOT_URL}/whatsapp/status`);
+      if (res.ok) {
+        const data = await res.json();
+        setWaStatus({
+          isConnected: Boolean(data.isConnected),
+          isConnecting: Boolean(data.isConnecting),
+          connectedNumber: data.connectedNumber || null,
+          hasQr: Boolean(data.hasQr),
+          qrCodeDataUrl: data.qrCodeDataUrl || null
+        });
+      }
     } catch (e) {
-      console.error(e);
-      showToast('خطأ أثناء تحميل إعدادات الربط', 'error');
+      console.warn('Could not reach WhatsApp status endpoint:', e);
     } finally {
-      setLoading(false);
+      setLoadingWa(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (currentRole !== Role.Admin) return;
-    loadSettings();
-  }, [currentRole]);
+    fetchWhatsAppStatus();
+    const interval = setInterval(fetchWhatsAppStatus, 12000);
+    return () => clearInterval(interval);
+  }, [fetchWhatsAppStatus]);
 
-  if (currentRole !== Role.Admin) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-xl text-center font-bold" dir="rtl">
-        ⚠️ عذراً، هذه الصفحة مخصصة لمدير النظام فقط.
-      </div>
-    );
-  }
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+  const handleDisconnectWhatsApp = async () => {
     try {
-      const settingsPayload = [
-        { key: 'whatsapp_token', value: whatsappToken },
-        { key: 'webhook_url', value: webhookUrl },
-        { key: 'gemini_api_key', value: geminiApiKey },
-        { key: 'attendance_buffer_minutes', value: attendanceBuffer }
-      ];
-      await api.updateSystemSettings(settingsPayload);
-      showToast('تم حفظ إعدادات الربط والتكامل بنجاح');
+      await fetch(`${BACKEND_ROOT_URL}/whatsapp/logout`, { method: 'POST' });
+      setSavedNotice('تم فصل جلسة الواتساب بنجاح، يمكنك مسح رمز QR جديد الآن');
+      fetchWhatsAppStatus();
     } catch (e) {
       console.error(e);
-      showToast('فشل حفظ إعدادات الربط', 'error');
-    } finally {
-      setSaving(false);
     }
+  };
+
+  const handleSaveConfig = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    setIntegrations((prev) =>
+      prev.map((item) => (item.id === editingItem.id ? editingItem : item))
+    );
+    setEditingItem(null);
+    setSavedNotice('تم حفظ وتحديث إعدادات الربط بنجاح');
+    setTimeout(() => setSavedNotice(null), 3500);
   };
 
   return (
-    <div className="space-y-8 animate-fade-in text-right" dir="rtl">
-      {/* Toast Alert */}
-      {toast && (
-        <div className={`fixed bottom-5 right-5 z-50 p-4 rounded-xl shadow-lg text-white font-bold text-xs flex items-center gap-2.5 transition-all ${
-          toast.type === 'success' ? 'bg-emerald-600 border border-emerald-500' : 'bg-rose-600 border border-rose-500'
-        }`}>
-          <span>{toast.message}</span>
+    <div className="p-6 max-w-7xl mx-auto space-y-6 dir-rtl text-right">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">إدارة الربط والتكامل (Integrations)</h1>
+          <p className="text-gray-500 text-sm">
+            إدارة اتصال بوت الواتساب الميداني، الذكاء الاصطناعي Gemini، والمنصات الحكومية
+          </p>
+        </div>
+        <button
+          onClick={fetchWhatsAppStatus}
+          className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600 transition-colors flex items-center gap-2 text-xs font-medium px-3"
+        >
+          <RefreshCw className={`w-4 h-4 ${loadingWa ? 'animate-spin' : ''}`} />
+          تحديث حالة الاتصال
+        </button>
+      </div>
+
+      {savedNotice && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4" />
+          {savedNotice}
         </div>
       )}
 
-      {/* Header Panel */}
-      <div className="bg-white p-6 rounded-2xl border border-brand-secondary/15 shadow-sm">
-        <h1 className="text-xl font-bold text-brand-teal-dark flex items-center gap-2.5">
-          <Link2 className="w-6 h-6 text-brand-primary" />
-          <span>إعدادات الربط الخارجي والذكاء الاصطناعي</span>
-        </h1>
-        <p className="text-xs text-slate-400 mt-1.5">
-          تهيئة مفاتيح الربط البرمجية (API Keys) للخدمات الخارجية مثل تطبيق الواتساب، وبوت الذكاء الاصطناعي Gemini، وعناوين التنبيهات (Webhooks).
-        </p>
+      {/* Live WhatsApp Bot Connection Banner */}
+      <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center gap-1.5">
+              <Smartphone className="w-4 h-4" />
+              بوت الواتساب الميداني (Baileys & Cloud Webhook)
+            </span>
+            {waStatus.isConnected ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                <Wifi className="w-3.5 h-3.5" />
+                متصل ونشط {waStatus.connectedNumber ? `(${waStatus.connectedNumber}+)` : ''}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                <WifiOff className="w-3.5 h-3.5" />
+                {waStatus.isConnecting ? 'جاري تهيئة رمز QR...' : 'غير مقترن — بانتظار مسح QR'}
+              </span>
+            )}
+          </div>
+          <h2 className="text-lg font-bold text-gray-900">
+            ربط رقم الواتساب لاستقبال طلبات الموظفين، البصمة الجغرافية، وتلخيص القروبات
+          </h2>
+          <p className="text-xs text-gray-500">
+            يدعم الأوامر التفاعلية (`قائمة`، `تسجيل حضور`، `صيانة`، `طلب سلفة`، `تقرير الوردية`) مع حفظ الجلسة تلقائياً في قاعدة البيانات لمنع الانقطاع.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <button
+            onClick={() => setIsQrModalOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-2"
+          >
+            <QrCode className="w-4 h-4" />
+            {waStatus.isConnected ? 'عرض حالة الاقتران / QR' : 'مسح رمز QR للربط الآن'}
+          </button>
+          {waStatus.isConnected && (
+            <button
+              onClick={handleDisconnectWhatsApp}
+              className="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors flex items-center gap-1.5"
+            >
+              <LogOut className="w-4 h-4" />
+              فصل الرقم
+            </button>
+          )}
+        </div>
       </div>
 
-      {loading ? (
-        <div className="bg-white p-12 rounded-2xl border border-brand-secondary/15 shadow-sm text-center text-xs text-slate-400 flex flex-col items-center gap-3">
-          <RotateCw className="w-8 h-8 text-brand-primary animate-spin" />
-          <span>جاري تحميل إعدادات الربط...</span>
-        </div>
-      ) : (
-        <form onSubmit={handleSave} className="bg-white rounded-2xl border border-brand-secondary/15 shadow-sm p-8 max-w-2xl space-y-6">
-          
-          {/* Section 1: WhatsApp Bot */}
-          <div className="space-y-4">
-            <h2 className="text-xs font-black text-brand-teal-dark flex items-center gap-2 pb-2 border-b border-slate-100">
-              <MessageSquare className="w-4 h-4 text-brand-primary" />
-              <span>ربط وتفعيل رسائل الواتساب (WhatsApp Bot API)</span>
-            </h2>
-            <div className="space-y-1">
-              <label className="text-xs text-slate-500 font-bold">رمز المصادقة (WhatsApp API Token):</label>
-              <input
-                type="text"
-                value={whatsappToken}
-                onChange={(e) => setWhatsappToken(e.target.value)}
-                placeholder="أدخل الرمز المميز للربط مع WhatsApp Business"
-                className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-brand-secondary/20 rounded-xl focus:outline-none font-mono"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-slate-500 font-bold">عنوان استقبال البيانات (Webhook URL):</label>
-              <input
-                type="url"
-                value={webhookUrl}
-                onChange={(e) => setWebhookUrl(e.target.value)}
-                placeholder="https://example.com/api/whatsapp-webhook"
-                className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-brand-secondary/20 rounded-xl focus:outline-none font-mono"
-              />
-            </div>
-          </div>
-
-          {/* Section 2: Gemini AI */}
-          <div className="space-y-4 pt-4">
-            <h2 className="text-xs font-black text-brand-teal-dark flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Key className="w-4 h-4 text-brand-primary" />
-              <span>محرك الذكاء الاصطناعي (Gemini AI Key)</span>
-            </h2>
-            <div className="space-y-1">
-              <label className="text-xs text-slate-500 font-bold">مفتاح API الخاص بـ Gemini (Gemini API Key):</label>
-              <input
-                type="password"
-                value={geminiApiKey}
-                onChange={(e) => setGeminiApiKey(e.target.value)}
-                placeholder="AIzaSy..."
-                className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-brand-secondary/20 rounded-xl focus:outline-none font-mono"
-              />
-            </div>
-          </div>
-
-          {/* Section 3: Attendance Buffer */}
-          <div className="space-y-4 pt-4">
-            <h2 className="text-xs font-black text-brand-teal-dark flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Clock className="w-4 h-4 text-brand-primary" />
-              <span>إعدادات الحضور والانصراف (Attendance Config)</span>
-            </h2>
-            <div className="space-y-1">
-              <label className="text-xs text-slate-500 font-bold">فترة سماح مطابقة الوردية بالدقائق (Shift Matching Buffer):</label>
-              <div className="flex items-center gap-2.5 max-w-xs">
-                <input
-                  type="number"
-                  min="0"
-                  value={attendanceBuffer}
-                  onChange={(e) => setAttendanceBuffer(e.target.value)}
-                  className="w-24 px-4 py-2.5 text-xs bg-slate-50 border border-brand-secondary/20 rounded-xl focus:outline-none font-bold"
-                  required
-                />
-                <span className="text-xs font-bold text-slate-500">دقائق (قبل/بعد الوردية)</span>
+      {/* Other Integrations Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {integrations.map((item) => (
+          <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className={`px-3 py-1.5 rounded-lg font-bold text-xs ${item.badgeColor}`}>
+                {item.badge}
               </div>
-              <p className="text-[10px] text-slate-400 mt-1">
-                تستخدم لمطابقة وقت بصمة الموظف مع الوردية المعينة له تلقائياً (بحد أقصى ± دقيقة).
-              </p>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                {item.statusText}
+              </span>
             </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex justify-end pt-4 border-t border-slate-100">
+            <div>
+              <h3 className="font-bold text-gray-900">{item.title}</h3>
+              <p className="text-gray-500 text-xs mt-1">{item.description}</p>
+            </div>
             <button
-              type="submit"
-              disabled={saving}
-              className="bg-brand-primary hover:bg-brand-primary-hover text-white font-extrabold text-xs px-6 py-3 rounded-lg flex items-center gap-2 transition shadow disabled:opacity-50"
+              onClick={() => setEditingItem({ ...item })}
+              className="w-full py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-medium rounded-lg transition-colors border border-gray-200"
             >
-              <Save className="w-4 h-4" />
-              <span>{saving ? 'جاري الحفظ...' : 'حفظ جميع الإعدادات'}</span>
+              {item.buttonLabel}
             </button>
           </div>
-        </form>
+        ))}
+      </div>
+
+      {/* Modal: Live WhatsApp QR Scanner */}
+      {isQrModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="text-lg font-bold text-gray-900">ربط بوت الواتساب عبر رمز QR</h3>
+              <button
+                onClick={() => setIsQrModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="w-full h-[420px] rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+              <iframe
+                src={`${BACKEND_ROOT_URL}/whatsapp/qr`}
+                title="WhatsApp QR Scanner"
+                className="w-full h-full border-0"
+              />
+            </div>
+
+            <div className="flex justify-between items-center text-xs text-gray-500 pt-1">
+              <span>افتح واتساب بالجوال ⬅️ الأجهزة المرتبطة ⬅️ ربط جهاز</span>
+              <button
+                onClick={() => setIsQrModalOpen(false)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium"
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit API Keys */}
+      {editingItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-900">{editingItem.title}</h3>
+              <button onClick={() => setEditingItem(null)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveConfig} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  رابط نقطة الاتصال (Endpoint / Webhook)
+                </label>
+                <input
+                  type="text"
+                  value={editingItem.endpointUrl}
+                  onChange={(e) => setEditingItem({ ...editingItem, endpointUrl: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  مفتاح الربط السري (API Key / Token)
+                </label>
+                <input
+                  type="password"
+                  value={editingItem.apiKey}
+                  onChange={(e) => setEditingItem({ ...editingItem, apiKey: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono"
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
+                >
+                  حفظ الإعدادات
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

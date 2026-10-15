@@ -1,51 +1,39 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { api, User, LoanRequest } from '../../../utils/api';
-import { useRole } from '../../../components/RoleContext';
-import { Role } from '../../../types_local';
-import { Plus, Landmark, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { api, LoanRequest, Branch, User } from '@/utils/api';
+import { useRole } from '@/components/RoleContext';
+import { Plus, RotateCw, Check, X } from 'lucide-react';
 
 export default function HRLoansPage() {
-  const { role: currentRole } = useRole();
-  const [users, setUsers] = useState<User[]>([]);
+  const { user } = useRole();
   const [loans, setLoans] = useState<LoanRequest[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [employees, setEmployees] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Form State
+
+  const [selectedBranch, setSelectedBranch] = useState<string>('ALL');
+  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [amount, setAmount] = useState('');
-  const [repaymentMonths, setRepaymentMonths] = useState(1);
+  const [installments, setInstallments] = useState('1');
   const [reason, setReason] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState('');
-
-  // Filtering State
-  const [statusFilter, setStatusFilter] = useState('All');
-
-  // Toast State
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [usersData, loansData] = await Promise.all([
-        api.getUsers(),
-        api.getLoanRequests()
+      const [loansData, branchData, userData] = await Promise.all([
+        api.getLoans(),
+        api.getBranches(),
+        api.getUsers()
       ]);
-      setUsers(usersData);
-      setLoans(loansData);
-      if (usersData.length > 0) {
-        setSelectedUserId(usersData[0].id);
-      }
-    } catch (error) {
-      console.error('Failed to load HR loans data:', error);
-      showToast('خطأ أثناء تحميل كشوف الموظفين والقروض', 'error');
+      setLoans(Array.isArray(loansData) ? loansData : []);
+      setBranches(Array.isArray(branchData) ? branchData : []);
+      setEmployees(Array.isArray(userData) ? userData : []);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -55,243 +43,256 @@ export default function HRLoansPage() {
     loadData();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedUserId) {
-      setFormError('الرجاء اختيار الموظف');
-      return;
-    }
-    const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      setFormError('الرجاء إدخال مبلغ صحيح أكبر من الصفر');
-      return;
-    }
-    if (!reason.trim()) {
-      setFormError('الرجاء إدخال سبب تقديم السلفة');
-      return;
-    }
+  const resolveEmployeeName = (loan: any): string => {
+    if (loan.user?.name) return loan.user.name;
+    if (loan.employee?.name) return loan.employee.name;
+    if (loan.employeeName) return loan.employeeName;
+    const matched = employees.find(
+      (emp) => emp.id === loan.userId || emp.id === loan.employeeId
+    );
+    if (matched?.name) return matched.name;
+    return user?.id === loan.userId && user?.name ? user.name : 'موظف بالفرع';
+  };
 
-    setIsSubmitting(true);
-    setFormError('');
+  const handleCreateLoan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const targetUserId = selectedUserId || user?.id || employees[0]?.id || '';
+    if (!targetUserId) return;
 
     try {
-      const newLoan = await api.createLoanRequest({
-        userId: selectedUserId,
-        amount: parsedAmount,
-        reason: reason.trim(),
-        repaymentMonths
+      await api.createLoanRequest({
+        userId: targetUserId,
+        amount: parseFloat(amount),
+        installmentsCount: parseInt(installments, 10) || 1,
+        reason: reason.trim()
       });
-
-      setLoans([newLoan, ...loans]);
-      showToast('تم إرسال طلب السلفة بنجاح وتحويله للمدير المالي للمراجعة.');
-      
-      // Reset Form
+      setIsModalOpen(false);
+      setSelectedUserId('');
       setAmount('');
+      setInstallments('1');
       setReason('');
-      setRepaymentMonths(1);
-    } catch (error: any) {
-      setFormError(error?.message || 'فشل تقديم طلب السلفة، يرجى المحاولة لاحقاً.');
-    } finally {
-      setIsSubmitting(false);
+      loadData();
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  const filteredLoans = loans.filter(loan => {
-    if (statusFilter === 'All') return true;
-    return loan.status === statusFilter;
+  const handleApproveLoan = async (id: string) => {
+    try {
+      await api.approveLoan(id);
+      loadData();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleRejectLoan = async (id: string) => {
+    try {
+      await api.rejectLoan(id, 'مرفوض من الإدارة');
+      loadData();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const filteredLoans = loans.filter((loan: any) => {
+    const empBranchId =
+      loan.user?.branchId ||
+      employees.find((u) => u.id === loan.userId)?.branchId;
+    const matchBranch = selectedBranch === 'ALL' || empBranchId === selectedBranch;
+    const matchStatus = selectedStatus === 'ALL' || loan.status === selectedStatus;
+    return matchBranch && matchStatus;
   });
 
-  const translateStatus = (statusStr: string) => {
-    switch (statusStr) {
-      case 'Pending': return 'معلق / بانتظار المالية';
-      case 'Approved': return 'تمت الموافقة والصرف';
-      case 'Rejected': return 'مرفوض من المالية';
-      default: return statusStr;
-    }
-  };
-
   return (
-    <div className="space-y-8 animate-in fade-in duration-300 text-right" dir="rtl">
-      
-      {/* Toast Notification */}
-      {toast && (
-        <div 
-          className={`fixed bottom-5 left-5 z-50 px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 text-xs font-bold transition-all transform duration-300 translate-y-0 border ${
-            toast.type === 'error' 
-              ? 'bg-rose-50 border-rose-300 text-rose-800' 
-              : 'bg-emerald-50 border-emerald-300 text-emerald-800'
-          }`}
-        >
-          <span className={`w-2 h-2 rounded-full ${toast.type === 'error' ? 'bg-rose-500' : 'bg-emerald-500'}`}></span>
-          <span>{toast.message}</span>
-        </div>
-      )}
-
-      {/* Header Banner */}
-      <div className="bg-brand-teal-dark text-white p-6 rounded-xl border border-brand-secondary/35 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-brand-secondary/10 blur-2xl"></div>
+    <div className="p-6 max-w-7xl mx-auto space-y-6 dir-rtl text-right">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-base font-bold tracking-wide uppercase font-sans">بوابة السلف والقروض الذكية</h1>
-          <p className="text-xs text-white/70 mt-1">
-            تقديم طلبات القروض المالية للموظفين ومتابعة حالة الدفع والاعتمادات المالية بالتنسيق مع الإدارة المالية.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">إدارة السلف والقروض</h1>
+          <p className="text-gray-500 text-sm">متابعة طلبات السلف والأقساط الشهرية للموظفين</p>
         </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          تقديم طلب سلفة
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Right side: Request Form */}
-        <div className="lg:col-span-1 bg-white rounded-xl border border-brand-secondary/20 p-6 shadow-sm h-fit">
-          <h3 className="text-xs font-bold text-brand-teal-dark border-b pb-3 mb-4 flex items-center gap-2">
-            <Plus className="w-4 h-4 text-brand-primary" />
-            طلب سلفة مالية جديدة
-          </h3>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {formError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold rounded">
-                ⚠️ {formError}
-              </div>
-            )}
-
-            {/* Employee selection */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-teal-dark block">الموظف المعني:</label>
-              <select
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-semibold"
-              >
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.name} ({translateStatus(u.role)})</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Amount */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-teal-dark block">مبلغ السلفة المطلوب (ريال):</label>
-              <input
-                type="number"
-                required
-                placeholder="مثال: 3000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-bold"
-              />
-            </div>
-
-            {/* Repayment Months */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-teal-dark block">مدة السداد والأقساط:</label>
-              <select
-                value={repaymentMonths}
-                onChange={(e) => setRepaymentMonths(parseInt(e.target.value, 10))}
-                className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary font-semibold"
-              >
-                {[1, 2, 3, 4, 5, 6, 8, 10, 12].map(m => (
-                  <option key={m} value={m}>على مدار {m} شهر</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Reason */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-teal-dark block">سبب وتفاصيل طلب السلفة:</label>
-              <textarea
-                required
-                rows={3}
-                placeholder="مثال: ظروف عائلية طارئة / سداد إيجار..."
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className="w-full text-xs bg-brand-cream border border-brand-secondary/35 rounded-lg p-2.5 text-brand-teal-dark focus:outline-none focus:border-brand-primary"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full text-xs font-bold bg-brand-primary hover:bg-brand-primary-hover text-white py-2.5 rounded transition-all cursor-pointer shadow-md disabled:opacity-50"
-            >
-              {isSubmitting ? 'جاري إرسال الطلب...' : 'إرسال طلب السلفة'}
-            </button>
-          </form>
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={selectedBranch}
+            onChange={(e) => setSelectedBranch(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
+          >
+            <option value="ALL">جميع الفروع</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
+          >
+            <option value="ALL">جميع الحالات</option>
+            <option value="PENDING">معلقة للمراجعة</option>
+            <option value="APPROVED">مقبولة</option>
+            <option value="REJECTED">مرفوضة</option>
+          </select>
         </div>
+        <button
+          onClick={loadData}
+          className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600"
+        >
+          <RotateCw className="w-4 h-4" />
+        </button>
+      </div>
 
-        {/* Left side: Tracking Table */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-brand-secondary/20 p-6 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-3 mb-6 gap-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table className="w-full text-right text-sm">
+          <thead className="bg-gray-50 text-gray-600 border-b border-gray-200">
+            <tr>
+              <th className="p-4 font-semibold">الموظف</th>
+              <th className="p-4 font-semibold">مبلغ السلفة</th>
+              <th className="p-4 font-semibold">الأقساط</th>
+              <th className="p-4 font-semibold">السبب</th>
+              <th className="p-4 font-semibold">الحالة</th>
+              <th className="p-4 font-semibold">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filteredLoans.map((loan: any) => (
+              <tr key={loan.id} className="hover:bg-gray-50/50">
+                <td className="p-4 font-medium text-gray-900">{resolveEmployeeName(loan)}</td>
+                <td className="p-4 font-bold text-gray-900">{(loan.amount || 0).toLocaleString()} ر.س</td>
+                <td className="p-4 text-gray-600">{loan.installmentsCount || loan.installments || 1} شهر</td>
+                <td className="p-4 text-gray-500 text-xs max-w-xs truncate">{loan.reason || '-'}</td>
+                <td className="p-4">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      loan.status === 'PENDING'
+                        ? 'bg-amber-100 text-amber-800'
+                        : loan.status === 'APPROVED'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {loan.status === 'PENDING'
+                      ? 'معلقة للمراجعة'
+                      : loan.status === 'APPROVED'
+                      ? 'مقبولة'
+                      : 'مرفوضة'}
+                  </span>
+                </td>
+                <td className="p-4">
+                  {loan.status === 'PENDING' && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleApproveLoan(loan.id)}
+                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg"
+                        title="اعتماد السلفة"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleRejectLoan(loan.id)}
+                        className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg"
+                        title="رفض السلفة"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-900">تقديم طلب سلفة جديد</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateLoan} className="space-y-4">
               <div>
-                <h3 className="text-xs font-bold text-brand-teal-dark">متابعة طلبات السلف والقروض</h3>
-                <p className="text-[10px] text-muted mt-1">قائمة بجميع السلف المقدمة وحالة المراجعة المالية والاعتمادات.</p>
-              </div>
-
-              {/* Status filtering */}
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] text-muted font-bold ml-1">تصفية:</span>
+                <label className="block text-xs font-medium text-gray-700 mb-1">الموظف</label>
                 <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="text-xs bg-brand-cream border border-brand-secondary/30 rounded p-1.5 text-brand-teal-dark font-semibold focus:outline-none"
+                  value={selectedUserId}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  required
                 >
-                  <option value="All">الكل</option>
-                  <option value="Pending">قيد الانتظار</option>
-                  <option value="Approved">تم الاعتماد</option>
-                  <option value="Rejected">مرفوضة</option>
+                  <option value="">اختر الموظف...</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name}
+                    </option>
+                  ))}
                 </select>
               </div>
-            </div>
-
-            {loading ? (
-              <div className="text-center py-20 text-xs text-muted italic">جاري تحميل سجلات القروض الموظفين...</div>
-            ) : filteredLoans.length === 0 ? (
-              <div className="text-center py-20 text-xs text-muted italic">لا توجد طلبات سلف تطابق التصفية المحددة.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-right border-collapse">
-                  <thead>
-                    <tr className="bg-brand-cream-dark border-b border-brand-secondary/20 text-brand-teal-dark text-xs font-bold">
-                      <th className="px-4 py-3">اسم الموظف</th>
-                      <th className="px-4 py-3 text-center">المبلغ المطلوب</th>
-                      <th className="px-4 py-3 text-center">مدة السداد</th>
-                      <th className="px-4 py-3">السبب</th>
-                      <th className="px-4 py-3">تاريخ التقديم</th>
-                      <th className="px-4 py-3 text-center">الحالة</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-brand-cream-dark text-xs text-brand-teal-dark/95">
-                    {filteredLoans.map((loan) => {
-                      const matchedUser = users.find(u => u.id === loan.userId);
-                      return (
-                        <tr key={loan.id} className="hover:bg-brand-cream/10 transition-colors">
-                          <td className="px-4 py-3 font-bold">{matchedUser ? matchedUser.name : 'موظف غير معروف'}</td>
-                          <td className="px-4 py-3 text-center font-extrabold text-brand-primary">{loan.amount} ريال</td>
-                          <td className="px-4 py-3 text-center text-muted font-medium">{loan.repaymentMonths || 1} شهر</td>
-                          <td className="px-4 py-3 max-w-[150px] truncate" title={loan.reason}>{loan.reason}</td>
-                          <td className="px-4 py-3 text-muted">{new Date(loan.createdAt).toLocaleDateString('ar-SA')}</td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold border ${
-                              loan.status === 'Approved' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
-                              loan.status === 'Rejected' ? 'bg-rose-50 border-rose-200 text-rose-800' :
-                              'bg-amber-50 border-amber-200 text-amber-800'
-                            }`}>
-                              {loan.status === 'Approved' ? 'معتمد ومصروف' :
-                               loan.status === 'Rejected' ? 'مرفوض' : 'معلق للمراجعة'}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">مبلغ السلفة (ر.س)</label>
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  min="1"
+                  required
+                />
               </div>
-            )}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">عدد الأقساط (بالأشهر)</label>
+                <input
+                  type="number"
+                  value={installments}
+                  onChange={(e) => setInstallments(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  min="1"
+                  max="24"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">سبب السلفة</label>
+                <textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  rows={3}
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
+                >
+                  إرسال الطلب
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-
-      </div>
-
+      )}
     </div>
   );
 }
